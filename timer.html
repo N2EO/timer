@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイマー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
+
+        #timer {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .control-bar {
+            width: 800px;
+            height: 50px;
+            position: absolute;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            bottom: 30px;
+            padding: 10px;
+        }
+
+        .controls {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            flex-direction: column;
+        }
+
+        .control-bar:hover .controls {
+            display: flex;
+        }
+
+
+        input[type="text"] {
+            width: 50px;
+            font-size: 1.2em;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="timer">00:00</div>
+
+    <div class="control-bar">
+        <div class="controls">
+            <div class="text-group">
+                <input type="text" id="minutes" placeholder="分" maxlength="2">
+                <input type="text" id="seconds" placeholder="秒" maxlength="2">
+                <button id="start-btn">スタート</button>
+                <button id="stop-btn">ストップ</button>
+                <button id="reset-btn">リセット</button>
+            </div>
+            <div class="settings">
+                <label>
+                    フォントサイズ (px): 
+                    <input type="number" id="fontSize" placeholder="例: 48">
+                </label>
+                <label>
+                    フォント: 
+                    <select id="fontFamily">
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Georgia">Georgia</option>
+                    </select>
+                </label>
+                <label>
+                    文字色: 
+                    <input type="color" id="fontColor">
+                </label>
+                <label>
+                    背景色: 
+                    <input type="color" id="bgColor">
+                </label>
+                <button onclick="applySettings()">設定を適用</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timer;
+        let isRunning = false;
+        let remainingTime = 0;
+        let startTime;
+
+        const timeDisplay = document.getElementById("timer");
+        const startButton = document.getElementById("start-btn");
+        const stopButton = document.getElementById("stop-btn");
+        const resetButton = document.getElementById("reset-btn");
+
+        function getTimeInput() {
+            const minutes = parseInt(document.getElementById("minutes").value) || 0;
+            const seconds = parseInt(document.getElementById("seconds").value) || 0;
+            return (minutes * 60 * 1000 + seconds * 1000);
+        }
+
+        function startCountdown() {
+            if (!isRunning) {
+                if (remainingTime === 0) {  
+                    remainingTime = getTimeInput();
+                }
+                startTime = Date.now();
+                timer = setInterval(updateTime, 10);
+                isRunning = true;
+            }
+        }
+
+        function stopCountdown() {
+            if (isRunning) {
+                clearInterval(timer);
+                remainingTime -= Date.now() - startTime;
+                isRunning = false;
+            }
+        }
+
+        function resetCountdown() {
+            clearInterval(timer);
+            isRunning = false;
+            remainingTime = 0;
+            timeDisplay.textContent = "00:00";
+            document.getElementById("minutes").value = "";
+            document.getElementById("seconds").value = "";
+        }
+
+        function updateTime() {
+            const elapsedTime = Date.now() - startTime;
+            remainingTime -= elapsedTime;
+            startTime = Date.now();
+
+            if (remainingTime <= 0) {
+                remainingTime = 0;
+                clearInterval(timer);
+                isRunning = false;
+            }
+
+            const minutes = Math.floor((remainingTime / (1000 * 60)) % 60);
+            const seconds = Math.floor((remainingTime / 1000) % 60);
+
+            timeDisplay.textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function applySettings() {
+            const fontSize = document.getElementById("fontSize").value;
+            const fontColor = document.getElementById("fontColor").value;
+            const fontFamily = document.getElementById("fontFamily").value;
+            const bgColor = document.getElementById("bgColor").value;
+
+            if (fontSize) timeDisplay.style.fontSize = `${fontSize}px`;
+            if (fontColor) timeDisplay.style.color = fontColor;
+            if (fontFamily) timeDisplay.style.fontFamily = fontFamily;
+            if (bgColor) {
+                document.body.style.backgroundColor = bgColor;
+                document.querySelector(".control-bar").style.backgroundColor = bgColor;
+            }
+        }
+
+        startButton.addEventListener("click", startCountdown);
+        stopButton.addEventListener("click", stopCountdown);
+        resetButton.addEventListener("click", resetCountdown);
+    </script>
+</body>
+</html>
